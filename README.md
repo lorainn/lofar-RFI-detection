@@ -1,2 +1,2 @@
 # lofar-RFI-detection
-LOFAR Latvia Satellite RFI Detection
+This repository serves the purpose of satellite RFI detection in LOFAR station in Irbene, Latvia.
