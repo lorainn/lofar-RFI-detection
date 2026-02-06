@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Observation: {{ obs_name }}</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    ul { list-style-type: none; padding-left: 20px; }
+    li { margin-bottom: 6px; }
+    a { text-decoration: none; color: #007bff; }
+    a:hover { text-decoration: underline; }
+    .folder { font-weight: bold; cursor: pointer; }
+    .back-link { margin-bottom: 20px; display: inline-block; }
+    .nested { display: none; margin-left: 15px; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-link">&#8592; Back to dashboard</a>
+  <h1>Observation: {{ obs_name }}</h1>
+  <div id="file-tree">
+    Loading...
+  </div>
+
+  <script>
+    const fileStructure = {};
+    {% for file in files %}
+      (function() {
+        const parts = {{ file|tojson }}.split("/");
+        let current = fileStructure;
+        for (let i = 0; i < parts.length; i++) {
+          if (!current[parts[i]]) {
+            current[parts[i]] = (i === parts.length - 1) ? null : {};
+          }
+          current = current[parts[i]];
+        }
+      })();
+    {% endfor %}
+
+    function createTree(container, tree, path = "") {
+      const ul = document.createElement("ul");
+      for (const name in tree) {
+        const li = document.createElement("li");
+        const fullPath = path + (path ? "/" : "") + name;
+        if (tree[name] === null) {
+          const a = document.createElement("a");
+          a.href = `/static/images/{{ obs_name }}/${fullPath}`;
+          a.target = "_blank";
+          a.textContent = name;
+          li.appendChild(a);
+        } else {
+          const span = document.createElement("span");
+          span.textContent = name;
+          span.className = "folder";
+          span.onclick = () => {
+            const nested = li.querySelector(".nested");
+            nested.style.display = nested.style.display === "none" ? "block" : "none";
+          };
+          li.appendChild(span);
+          const nested = document.createElement("div");
+          nested.className = "nested";
+          createTree(nested, tree[name], fullPath);
+          li.appendChild(nested);
+        }
+        ul.appendChild(li);
+      }
+      container.appendChild(ul);
+    }
+
+    const container = document.getElementById("file-tree");
+    container.innerHTML = "";
+    createTree(container, fileStructure);
+  </script>
+</body>
+</html>
